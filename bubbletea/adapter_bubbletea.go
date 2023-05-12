@@ -43,15 +43,34 @@ var ebitenToTeaMouse = map[ebiten.MouseButton]tea.MouseEventType{
 	ebiten.MouseButtonRight:  tea.MouseRight,
 }
 
-type BubbleTeaAdapter struct {
-	prog *tea.Program
+// Options are used to configure the adapter.
+type Options func(*Adapter)
+
+// WithFilterMousePressed filters the MousePressed event and only emits MouseReleased events.
+func WithFilterMousePressed(filter bool) Options {
+	return func(b *Adapter) {
+		b.filterMousePressed = filter
+	}
 }
 
-func NewBubbleTeaAdapter(prog *tea.Program) *BubbleTeaAdapter {
-	return &BubbleTeaAdapter{prog: prog}
+// Adapter represents a bubbletea adapter for the crt package.
+type Adapter struct {
+	prog               *tea.Program
+	filterMousePressed bool
 }
 
-func (b *BubbleTeaAdapter) HandleMouseMotion(motion crt.MouseMotion) {
+// NewAdapter creates a new bubbletea adapter.
+func NewAdapter(prog *tea.Program, options ...Options) *Adapter {
+	b := &Adapter{prog: prog, filterMousePressed: true}
+
+	for i := range options {
+		options[i](b)
+	}
+
+	return b
+}
+
+func (b *Adapter) HandleMouseMotion(motion crt.MouseMotion) {
 	b.prog.Send(tea.MouseMsg{
 		X:    motion.X,
 		Y:    motion.Y,
@@ -61,7 +80,12 @@ func (b *BubbleTeaAdapter) HandleMouseMotion(motion crt.MouseMotion) {
 	})
 }
 
-func (b *BubbleTeaAdapter) HandleMouseButton(button crt.MouseButton) {
+func (b *Adapter) HandleMouseButton(button crt.MouseButton) {
+	// Filter this event or two events will be sent for one click in the current bubbletea version.
+	if b.filterMousePressed && button.JustPressed {
+		return
+	}
+
 	b.prog.Send(tea.MouseMsg{
 		X:    button.X,
 		Y:    button.Y,
@@ -71,7 +95,7 @@ func (b *BubbleTeaAdapter) HandleMouseButton(button crt.MouseButton) {
 	})
 }
 
-func (b *BubbleTeaAdapter) HandleMouseWheel(wheel crt.MouseWheel) {
+func (b *Adapter) HandleMouseWheel(wheel crt.MouseWheel) {
 	if wheel.DY > 0 {
 		b.prog.Send(tea.MouseMsg{
 			X:    wheel.X,
@@ -91,7 +115,7 @@ func (b *BubbleTeaAdapter) HandleMouseWheel(wheel crt.MouseWheel) {
 	}
 }
 
-func (b *BubbleTeaAdapter) HandleKeyPress() {
+func (b *Adapter) HandleKeyPress() {
 	var keys []ebiten.Key
 	keys = inpututil.AppendJustReleasedKeys(keys)
 
@@ -119,7 +143,7 @@ func (b *BubbleTeaAdapter) HandleKeyPress() {
 	}
 }
 
-func (b *BubbleTeaAdapter) HandleWindowSize(size crt.WindowSize) {
+func (b *Adapter) HandleWindowSize(size crt.WindowSize) {
 	b.prog.Send(tea.WindowSizeMsg{
 		Width:  size.Width,
 		Height: size.Height,
