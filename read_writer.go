@@ -2,11 +2,13 @@ package crt
 
 import "io"
 
+// ConcurrentRW is a concurrent read/write buffer via channels.
 type ConcurrentRW struct {
 	input  chan []byte
 	output chan []byte
 }
 
+// NewConcurrentRW creates a new concurrent read/write buffer.
 func NewConcurrentRW() *ConcurrentRW {
 	return &ConcurrentRW{
 		input:  make(chan []byte, 10),
@@ -14,6 +16,7 @@ func NewConcurrentRW() *ConcurrentRW {
 	}
 }
 
+// Write writes data to the buffer.
 func (rw *ConcurrentRW) Write(p []byte) (n int, err error) {
 	data := make([]byte, len(p))
 	copy(data, p)
@@ -21,6 +24,7 @@ func (rw *ConcurrentRW) Write(p []byte) (n int, err error) {
 	return len(data), nil
 }
 
+// Read reads data from the buffer.
 func (rw *ConcurrentRW) Read(p []byte) (n int, err error) {
 	data, ok := <-rw.output
 	if !ok {
@@ -30,6 +34,7 @@ func (rw *ConcurrentRW) Read(p []byte) (n int, err error) {
 	return n, nil
 }
 
+// Run starts the concurrent read/write buffer.
 func (rw *ConcurrentRW) Run() {
 	const bufferSize = 1024
 	buf := make([]byte, 0, bufferSize)

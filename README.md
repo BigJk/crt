@@ -17,18 +17,19 @@ go get github.com/BigJk/crt@latest
 
 ```go
 func main() {
+	// Load fonts for normal, bold and italic text styles.
 	fonts, err := crt.LoadFaces("./fonts/SomeFont-Regular.ttf", "./fonts/SomeFont-Bold.ttf", "./fonts/SomeFont-Italic.ttf", 72.0, 16.0)
 	if err != nil {
 		panic(err)
 	}
 
-	// Just pass your tea.Model to the bubbleadapter and it will render it to the terminal
-	win, err := bubbleadapter.Window(Width, Height, fonts, model{}, color.Black, tea.WithAltScreen())
+	// Just pass your tea.Model to the bubbleadapter, and it will render it to the terminal.
+	win, err := bubbleadapter.Window(1000, 600, fonts, someModel{}, color.Black, tea.WithAltScreen())
 	if err != nil {
 		panic(err)
 	}
 
-	// Star the terminal with the given title
+	// Star the terminal with the given title.
 	if err := win.Run("Simple"); err != nil {
 		panic(err)
 	}
