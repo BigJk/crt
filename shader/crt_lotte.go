@@ -310,6 +310,9 @@ type CrtLotte struct {
 }
 
 func (s *CrtLotte) Apply(screen *ebiten.Image, buffer *ebiten.Image) error {
+	s.Lock()
+	defer s.Unlock()
+
 	s.Uniforms["ScreenSize"] = []float32{float32(screen.Bounds().Dx()), float32(screen.Bounds().Dy())}
 	s.Uniforms["TextureSize"] = []float32{float32(buffer.Bounds().Dx()), float32(buffer.Bounds().Dy())}
 

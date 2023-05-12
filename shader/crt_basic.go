@@ -87,6 +87,9 @@ type CrtBasic struct {
 }
 
 func (b *CrtBasic) Apply(screen *ebiten.Image, buffer *ebiten.Image) error {
+	b.Lock()
+	defer b.Unlock()
+
 	b.tick += 1 / 60.0
 	var options ebiten.DrawRectShaderOptions
 	options.GeoM.Translate(0, 0)
