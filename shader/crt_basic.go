@@ -1,12 +1,14 @@
-package crt
+package shader
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+	"math/rand"
+)
 
-// crtShader returns a shader that simulates a CRT display in Kage language.
+// crtBasicKage is a CRT shader that simulates a CRT monitor with a basic pixel grid.
 //
-// Credits: https://quasilyte.dev/blog/post/ebitengine-shaders/#round-3-the-crt-display-effect
-func crtShader() (*ebiten.Shader, error) {
-	return ebiten.NewShader([]byte(`
+// Credits: https://quasilyte.dev/blog/post/ebitengine-shaders/
+var crtBasicKage = []byte(`
 	package main
 
 	var Seed float
@@ -77,5 +79,34 @@ func crtShader() (*ebiten.Shader, error) {
 	
 		return c
 	}
-`))
+`)
+
+type CrtBasic struct {
+	BaseShader
+	tick float64
+}
+
+func (b *CrtBasic) Apply(screen *ebiten.Image, buffer *ebiten.Image) error {
+	b.tick += 1 / 60.0
+	var options ebiten.DrawRectShaderOptions
+	options.GeoM.Translate(0, 0)
+	options.Images[0] = buffer
+	options.Uniforms = map[string]any{
+		"Seed": rand.Float64() * 10000,
+		"Tick": b.tick,
+	}
+	screen.DrawRectShader(screen.Bounds().Dx(), screen.Bounds().Dy(), b.Shader, &options)
+	return nil
+}
+
+func NewCrtBasic() (*CrtBasic, error) {
+	shader, err := ebiten.NewShader([]byte(crtBasicKage))
+	if err != nil {
+		return nil, err
+	}
+	return &CrtBasic{
+		BaseShader: BaseShader{
+			Shader: shader,
+		},
+	}, nil
 }

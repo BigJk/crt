@@ -2,6 +2,7 @@ package crt
 
 import (
 	"fmt"
+	"github.com/BigJk/crt/shader"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -10,7 +11,6 @@ import (
 	"image"
 	"image/color"
 	"io"
-	"math/rand"
 	"sync"
 	"syscall"
 )
@@ -41,13 +41,12 @@ type Window struct {
 	curWeight  FontWeight
 
 	// Other
-	crtShader bool
-	showTps   bool
-	fonts     Fonts
-	bgColors  *image.RGBA
-	shader    *ebiten.Shader
-	routine   sync.Once
-	tick      float64
+	showTps  bool
+	fonts    Fonts
+	bgColors *image.RGBA
+	shader   shader.Shader
+	routine  sync.Once
+	tick     float64
 }
 
 // NewGame creates a new terminal game with the given dimensions and font faces.
@@ -79,11 +78,6 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 		}
 	}
 
-	shader, err := crtShader()
-	if err != nil {
-		return nil, err
-	}
-
 	game := &Window{
 		inputAdapter: adapter,
 		cellsWidth:   cellsWidth,
@@ -96,7 +90,6 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 		grid:         grid,
 		tty:          tty,
 		bgColors:     image.NewRGBA(image.Rect(0, 0, cellsWidth*cellWidth, cellsHeight*cellHeight)),
-		shader:       shader,
 	}
 
 	game.inputAdapter.HandleWindowSize(WindowSize{
@@ -109,9 +102,9 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 	return game, nil
 }
 
-// CRTShader enables or disables the CRT shader. This is just a visual effect.
-func (g *Window) CRTShader(val bool) {
-	g.crtShader = val
+// SetShader sets a shader that is applied to the whole screen.
+func (g *Window) SetShader(shader shader.Shader) {
+	g.shader = shader
 }
 
 // ShowTPS enables or disables the TPS counter on the top left.
@@ -428,10 +421,10 @@ func (g *Window) Draw(screen *ebiten.Image) {
 	g.Lock()
 	defer g.Unlock()
 
-	bufImager := ebiten.NewImage(g.cellsWidth*g.cellWidth, g.cellsHeight*g.cellHeight)
+	bufferImage := ebiten.NewImage(g.cellsWidth*g.cellWidth, g.cellsHeight*g.cellHeight)
 
 	// Draw background
-	bufImager.WritePixels(g.bgColors.Pix)
+	bufferImage.WritePixels(g.bgColors.Pix)
 
 	// Draw text
 	for y := 0; y < g.cellsHeight; y++ {
@@ -442,28 +435,20 @@ func (g *Window) Draw(screen *ebiten.Image) {
 
 			switch g.grid[y][x].Weight {
 			case FontWeightNormal:
-				text.Draw(bufImager, string(g.grid[y][x].Char), g.fonts.Normal, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
+				text.Draw(bufferImage, string(g.grid[y][x].Char), g.fonts.Normal, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
 			case FontWeightBold:
-				text.Draw(bufImager, string(g.grid[y][x].Char), g.fonts.Bold, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
+				text.Draw(bufferImage, string(g.grid[y][x].Char), g.fonts.Bold, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
 			case FontWeightItalic:
-				text.Draw(bufImager, string(g.grid[y][x].Char), g.fonts.Italic, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
+				text.Draw(bufferImage, string(g.grid[y][x].Char), g.fonts.Italic, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
 			}
 		}
 	}
 
 	g.tick += 1 / 60.0
-
-	if g.crtShader {
-		var options ebiten.DrawRectShaderOptions
-		options.GeoM.Translate(0, 0)
-		options.Images[0] = bufImager
-		options.Uniforms = map[string]any{
-			"Seed": rand.Float64() * 10000,
-			"Tick": g.tick,
-		}
-		screen.DrawRectShader(g.cellsWidth*g.cellWidth, g.cellsHeight*g.cellHeight, g.shader, &options)
+	if g.shader != nil {
+		_ = g.shader.Apply(screen, bufferImage)
 	} else {
-		screen.DrawImage(bufImager, nil)
+		screen.DrawImage(bufferImage, nil)
 	}
 
 	if g.showTps {

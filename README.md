@@ -53,3 +53,8 @@ func main() {
 - Only supports TrueColor at the moment (no 256 color support) so you need to use TrueColor colors in lipgloss (e.g. ``lipgloss.Color("#ff0000")``)
 - Not all CSI escape sequences are implemented but the ones that are used by bubbletea are implemented
 - A lot of testing still needs to be done and there are probably edge cases that are not handled correctly yet
+
+## Credits
+
+- Basic CRT Shader ``./shader/crt_basic``: https://quasilyte.dev/blog/post/ebitengine-shaders/
+- Lottes CRT Shader ``./shader/crt_lotte``: Elias Daler https://github.com/eliasdaler/crten and Timothy Lottes.
