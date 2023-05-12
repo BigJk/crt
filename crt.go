@@ -98,6 +98,7 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 	})
 
 	game.ResetSGR()
+	game.RecalculateBackgrounds()
 
 	return game, nil
 }
@@ -279,6 +280,7 @@ func (g *Window) parseSequences(str string, printExtra bool) int {
 	return lastFound
 }
 
+// RecalculateBackgrounds syncs the background colors to the background pixels.
 func (g *Window) RecalculateBackgrounds() {
 	for i := 0; i < g.cellsWidth; i++ {
 		for j := 0; j < g.cellsHeight; j++ {
