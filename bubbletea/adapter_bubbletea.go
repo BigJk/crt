@@ -120,22 +120,20 @@ func (b *Adapter) HandleKeyPress() {
 	keys = inpututil.AppendJustReleasedKeys(keys)
 
 	for _, k := range keys {
-		runes := []rune(strings.ToLower(k.String()))
-		if val, ok := ebitenToTeaRunes[k]; ok {
-			runes = val
-		}
-		b.prog.Send(tea.KeyMsg{
-			Type:  tea.KeyRunes,
-			Runes: runes,
-			Alt:   ebiten.IsKeyPressed(ebiten.KeyAlt),
-		})
-	}
-
-	for k, v := range ebitenToTeaKeys {
-		if inpututil.IsKeyJustReleased(k) {
+		if val, ok := ebitenToTeaKeys[k]; ok {
 			runes := []rune(strings.ToLower(k.String()))
 			b.prog.Send(tea.KeyMsg{
-				Type:  v,
+				Type:  val,
+				Runes: runes,
+				Alt:   ebiten.IsKeyPressed(ebiten.KeyAlt),
+			})
+		} else {
+			runes := []rune(strings.ToLower(k.String()))
+			if val, ok := ebitenToTeaRunes[k]; ok {
+				runes = val
+			}
+			b.prog.Send(tea.KeyMsg{
+				Type:  tea.KeyRunes,
 				Runes: runes,
 				Alt:   ebiten.IsKeyPressed(ebiten.KeyAlt),
 			})
