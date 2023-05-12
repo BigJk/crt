@@ -44,7 +44,7 @@ type Window struct {
 	showTps  bool
 	fonts    Fonts
 	bgColors *image.RGBA
-	shader   shader.Shader
+	shader   []shader.Shader
 	routine  sync.Once
 	tick     float64
 }
@@ -104,7 +104,7 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 }
 
 // SetShader sets a shader that is applied to the whole screen.
-func (g *Window) SetShader(shader shader.Shader) {
+func (g *Window) SetShader(shader ...shader.Shader) {
 	g.shader = shader
 }
 
@@ -423,6 +423,8 @@ func (g *Window) Draw(screen *ebiten.Image) {
 	g.Lock()
 	defer g.Unlock()
 
+	screen.Fill(g.defaultBg)
+
 	bufferImage := ebiten.NewImage(g.cellsWidth*g.cellWidth, g.cellsHeight*g.cellHeight)
 
 	// Draw background
@@ -448,7 +450,9 @@ func (g *Window) Draw(screen *ebiten.Image) {
 
 	g.tick += 1 / 60.0
 	if g.shader != nil {
-		_ = g.shader.Apply(screen, bufferImage)
+		for i := range g.shader {
+			_ = g.shader[i].Apply(screen, bufferImage)
+		}
 	} else {
 		screen.DrawImage(bufferImage, nil)
 	}
