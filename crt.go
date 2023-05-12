@@ -452,6 +452,10 @@ func (g *Window) Draw(screen *ebiten.Image) {
 	if g.shader != nil {
 		for i := range g.shader {
 			_ = g.shader[i].Apply(screen, bufferImage)
+
+			if len(g.shader) > 0 {
+				bufferImage.DrawImage(screen, nil)
+			}
 		}
 	} else {
 		screen.DrawImage(bufferImage, nil)
