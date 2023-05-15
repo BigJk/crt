@@ -1,0 +1,5 @@
+package crt
+
+func SysKill() {
+	
+}

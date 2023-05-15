@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 	"image/color"
-	"syscall"
 )
 
 func init() {
@@ -53,10 +52,9 @@ func Window(width int, height int, fonts crt.Fonts, model tea.Model, defaultBg c
 		fmt.Println("Running Bubbletea program")
 		if _, err := prog.Run(); err != nil {
 			fmt.Printf("Alas, there's been an error: %v", err)
-			//os.Exit(1)
 		}
 
-		_ = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		crt.SysKill()
 	}()
 
 	return crt.NewGame(width, height, fonts, gameOutput, NewAdapter(prog), defaultBg)

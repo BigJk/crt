@@ -12,7 +12,6 @@ import (
 	"image/color"
 	"io"
 	"sync"
-	"syscall"
 )
 
 type Window struct {
@@ -484,5 +483,5 @@ func (g *Window) Run(title string) error {
 }
 
 func (g *Window) Kill() {
-	_ = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+	SysKill()
 }
