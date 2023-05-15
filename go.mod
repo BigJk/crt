@@ -4,7 +4,7 @@ go 1.20
 
 replace github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 => github.com/BigJk/console v0.0.0-20230513075401-4eedcbad049e
 
-replace github.com/charmbracelet/bubbletea v0.24.0 => github.com/BigJk/bubbletea v0.0.0-20230514074532-5e8e5105b553
+replace github.com/charmbracelet/bubbletea v0.24.0 => github.com/charmbracelet/bubbletea v0.23.3-0.20230307193447-807465ab271e
 
 require (
 	github.com/charmbracelet/bubbles v0.15.0
