@@ -142,7 +142,7 @@ func (b *Adapter) HandleKeyPress() {
 				Alt:   ebiten.IsKeyPressed(ebiten.KeyAlt),
 			})
 		} else {
-			runes := []rune(strings.ToLower(k.String()))
+			var runes []rune
 			if val, ok := ebitenToTeaRunes[k]; ok {
 				runes = val
 			}
