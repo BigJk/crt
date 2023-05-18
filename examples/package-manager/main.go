@@ -192,7 +192,7 @@ func main() {
 		panic(err)
 	}
 
-	win, err := bubbleadapter.Window(Width, Height, fonts, newModel(), color.Black)
+	win, _, err := bubbleadapter.Window(Width, Height, fonts, newModel(), color.Black)
 	if err != nil {
 		panic(err)
 	}

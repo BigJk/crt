@@ -30,14 +30,17 @@ type Window struct {
 	tty          io.Reader
 
 	// Terminal cursor and color states.
-	cursorX    int
-	cursorY    int
-	mouseCellX int
-	mouseCellY int
-	defaultBg  color.Color
-	curFg      color.Color
-	curBg      color.Color
-	curWeight  FontWeight
+	cursorChar  string
+	cursorColor color.Color
+	showCursor  bool
+	cursorX     int
+	cursorY     int
+	mouseCellX  int
+	mouseCellY  int
+	defaultBg   color.Color
+	curFg       color.Color
+	curBg       color.Color
+	curWeight   FontWeight
 
 	// Other
 	showTps  bool
@@ -45,7 +48,6 @@ type Window struct {
 	bgColors *image.RGBA
 	shader   []shader.Shader
 	routine  sync.Once
-	tick     float64
 }
 
 // NewGame creates a new terminal game with the given dimensions and font faces.
@@ -89,6 +91,8 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 		grid:         grid,
 		tty:          tty,
 		bgColors:     image.NewRGBA(image.Rect(0, 0, cellsWidth*cellWidth, cellsHeight*cellHeight)),
+		cursorChar:   "█",
+		cursorColor:  color.RGBA{R: 255, G: 255, B: 255, A: 100},
 	}
 
 	game.inputAdapter.HandleWindowSize(WindowSize{
@@ -100,6 +104,21 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 	game.RecalculateBackgrounds()
 
 	return game, nil
+}
+
+// SetShowCursor enables or disables the cursor.
+func (g *Window) SetShowCursor(val bool) {
+	g.showCursor = val
+}
+
+// SetCursorChar sets the character that is used for the cursor.
+func (g *Window) SetCursorChar(char string) {
+	g.cursorChar = char
+}
+
+// SetCursorColor sets the color of the cursor.
+func (g *Window) SetCursorColor(color color.Color) {
+	g.cursorColor = color
 }
 
 // SetShader sets a shader that is applied to the whole screen.
@@ -215,6 +234,10 @@ func (g *Window) handleCSI(csi any) {
 				g.SetBgPixels(i, g.cursorY, g.defaultBg)
 			}
 		}
+	case CursorShowSeq:
+		g.SetShowCursor(true)
+	case CursorHideSeq:
+		g.SetShowCursor(false)
 	case ScrollUpSeq:
 		fmt.Println("UNSUPPORTED: ScrollUpSeq", seq.Count)
 	case ScrollDownSeq:
@@ -447,7 +470,10 @@ func (g *Window) Draw(screen *ebiten.Image) {
 		}
 	}
 
-	g.tick += 1 / 60.0
+	if g.showCursor {
+		text.Draw(bufferImage, g.cursorChar, g.fonts.Normal, g.cursorX*g.cellWidth, g.cursorY*g.cellHeight+g.cellOffsetY, g.cursorColor)
+	}
+
 	if g.shader != nil {
 		for i := range g.shader {
 			_ = g.shader[i].Apply(screen, bufferImage)

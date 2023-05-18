@@ -31,7 +31,7 @@ func (f fakeEnviron) Getenv(s string) string {
 
 // Window creates a new crt based bubbletea window with the given width, height, fonts, model and default background color.
 // Additional options can be passed to the bubbletea program.
-func Window(width int, height int, fonts crt.Fonts, model tea.Model, defaultBg color.Color, options ...tea.ProgramOption) (*crt.Window, error) {
+func Window(width int, height int, fonts crt.Fonts, model tea.Model, defaultBg color.Color, options ...tea.ProgramOption) (*crt.Window, *tea.Program, error) {
 	gameInput := crt.NewConcurrentRW()
 	gameOutput := crt.NewConcurrentRW()
 
@@ -56,5 +56,6 @@ func Window(width int, height int, fonts crt.Fonts, model tea.Model, defaultBg c
 		crt.SysKill()
 	}()
 
-	return crt.NewGame(width, height, fonts, gameOutput, NewAdapter(prog), defaultBg)
+	win, err := crt.NewGame(width, height, fonts, gameOutput, NewAdapter(prog), defaultBg)
+	return win, prog, err
 }

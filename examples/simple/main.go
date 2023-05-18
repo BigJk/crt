@@ -34,10 +34,13 @@ func main() {
 		panic(err)
 	}
 
-	win, err := bubbleadapter.Window(Width, Height, fonts, model{}, color.Black, tea.WithAltScreen())
+	win, prog, err := bubbleadapter.Window(Width, Height, fonts, model{}, color.Black, tea.WithAltScreen())
 	if err != nil {
 		panic(err)
 	}
+
+	prog.Send(tea.ShowCursor())
+	win.SetCursorChar("_")
 
 	if err := win.Run("Simple"); err != nil {
 		panic(err)

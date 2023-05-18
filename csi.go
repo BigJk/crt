@@ -72,6 +72,10 @@ type DeleteLineSeq struct {
 	Count int
 }
 
+type CursorShowSeq struct{}
+
+type CursorHideSeq struct{}
+
 // extractCSI extracts a CSI sequence from the beginning of a string.
 // It returns the sequence without any suffix, and a boolean indicating
 // whether a sequence was found.
@@ -103,6 +107,13 @@ func parseCSI(s string) (any, bool) {
 	s = s[len(termenv.CSI):]
 	if len(s) == 0 {
 		return nil, false
+	}
+
+	switch s {
+	case termenv.ShowCursorSeq:
+		return CursorShowSeq{}, true
+	case termenv.HideCursorSeq:
+		return CursorHideSeq{}, true
 	}
 
 	switch s[len(s)-1] {

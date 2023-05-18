@@ -36,7 +36,7 @@ func main() {
 	}
 
 	// Just pass your tea.Model to the bubbleadapter, and it will render it to the terminal.
-	win, err := bubbleadapter.Window(1000, 600, fonts, someModel{}, color.Black, tea.WithAltScreen())
+	win, _, err := bubbleadapter.Window(1000, 600, fonts, someModel{}, color.Black, tea.WithAltScreen())
 	if err != nil {
 		panic(err)
 	}

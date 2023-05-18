@@ -15,6 +15,7 @@ func TestCSI(t *testing.T) {
 	testString += fmt.Sprintf(termenv.CSI+termenv.CursorPositionSeq, 1, 2)
 	testString += fmt.Sprintf(termenv.CSI+termenv.CursorPositionSeq, 1, 2)
 	testString += "HELLO WORLD"
+	testString += termenv.CSI + termenv.ShowCursorSeq
 	testString += fmt.Sprintf(termenv.CSI+termenv.CursorPositionSeq, 1, 2)
 	testString += fmt.Sprintf(termenv.CSI+termenv.CursorBackSeq, 5)
 
@@ -34,6 +35,7 @@ func TestCSI(t *testing.T) {
 		EraseDisplaySeq{Type: 20},
 		CursorPositionSeq{Row: 1, Col: 2},
 		CursorPositionSeq{Row: 1, Col: 2},
+		CursorShowSeq{},
 		CursorPositionSeq{Row: 1, Col: 2},
 		CursorBackSeq{Count: 5},
 	}, sequences)
