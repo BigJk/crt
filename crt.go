@@ -42,12 +42,19 @@ type Window struct {
 	curBg       color.Color
 	curWeight   FontWeight
 
+	// Callbacks
+	onUpdate   func()
+	onPreDraw  func(screen *ebiten.Image)
+	onPostDraw func(screen *ebiten.Image)
+
 	// Other
-	showTps  bool
-	fonts    Fonts
-	bgColors *image.RGBA
-	shader   []shader.Shader
-	routine  sync.Once
+	showTps          bool
+	fonts            Fonts
+	bgColors         *image.RGBA
+	shader           []shader.Shader
+	routine          sync.Once
+	lastBuffer       *ebiten.Image
+	invalidateBuffer bool
 }
 
 // NewGame creates a new terminal game with the given dimensions and font faces.
@@ -80,19 +87,23 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 	}
 
 	game := &Window{
-		inputAdapter: adapter,
-		cellsWidth:   cellsWidth,
-		cellsHeight:  cellsHeight,
-		cellWidth:    cellWidth,
-		cellHeight:   cellHeight,
-		cellOffsetY:  cellOffsetY,
-		fonts:        fonts,
-		defaultBg:    defaultBg,
-		grid:         grid,
-		tty:          tty,
-		bgColors:     image.NewRGBA(image.Rect(0, 0, cellsWidth*cellWidth, cellsHeight*cellHeight)),
-		cursorChar:   "█",
-		cursorColor:  color.RGBA{R: 255, G: 255, B: 255, A: 100},
+		inputAdapter:     adapter,
+		cellsWidth:       cellsWidth,
+		cellsHeight:      cellsHeight,
+		cellWidth:        cellWidth,
+		cellHeight:       cellHeight,
+		cellOffsetY:      cellOffsetY,
+		fonts:            fonts,
+		defaultBg:        defaultBg,
+		grid:             grid,
+		tty:              tty,
+		bgColors:         image.NewRGBA(image.Rect(0, 0, cellsWidth*cellWidth, cellsHeight*cellHeight)),
+		cursorChar:       "█",
+		cursorColor:      color.RGBA{R: 255, G: 255, B: 255, A: 100},
+		onUpdate:         func() {},
+		onPreDraw:        func(screen *ebiten.Image) {},
+		onPostDraw:       func(screen *ebiten.Image) {},
+		invalidateBuffer: true,
 	}
 
 	game.inputAdapter.HandleWindowSize(WindowSize{
@@ -109,16 +120,19 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 // SetShowCursor enables or disables the cursor.
 func (g *Window) SetShowCursor(val bool) {
 	g.showCursor = val
+	g.InvalidateBuffer()
 }
 
 // SetCursorChar sets the character that is used for the cursor.
 func (g *Window) SetCursorChar(char string) {
 	g.cursorChar = char
+	g.InvalidateBuffer()
 }
 
 // SetCursorColor sets the color of the cursor.
 func (g *Window) SetCursorColor(color color.Color) {
 	g.cursorColor = color
+	g.InvalidateBuffer()
 }
 
 // SetShader sets a shader that is applied to the whole screen.
@@ -126,9 +140,29 @@ func (g *Window) SetShader(shader ...shader.Shader) {
 	g.shader = shader
 }
 
+// SetOnUpdate sets a function that is called every frame.
+func (g *Window) SetOnUpdate(fn func()) {
+	g.onUpdate = fn
+}
+
+// SetOnPreDraw sets a function that is called before the screen is drawn.
+func (g *Window) SetOnPreDraw(fn func(screen *ebiten.Image)) {
+	g.onPreDraw = fn
+}
+
+// SetOnPostDraw sets a function that is called after the screen is drawn.
+func (g *Window) SetOnPostDraw(fn func(screen *ebiten.Image)) {
+	g.onPostDraw = fn
+}
+
 // ShowTPS enables or disables the TPS counter on the top left.
 func (g *Window) ShowTPS(val bool) {
 	g.showTps = val
+}
+
+// InvalidateBuffer forces the buffer to be redrawn.
+func (g *Window) InvalidateBuffer() {
+	g.invalidateBuffer = true
 }
 
 // ResetSGR resets the SGR attributes to their default values.
@@ -145,6 +179,17 @@ func (g *Window) SetBgPixels(x, y int, c color.Color) {
 			g.bgColors.Set(x*g.cellWidth+i, y*g.cellHeight+j, c)
 		}
 	}
+	g.InvalidateBuffer()
+}
+
+// GetCellsWidth returns the number of cells in the x direction.
+func (g *Window) GetCellsWidth() int {
+	return g.cellsWidth
+}
+
+// GetCellsHeight returns the number of cells in the y direction.
+func (g *Window) GetCellsHeight() int {
+	return g.cellsHeight
 }
 
 func (g *Window) handleCSI(csi any) {
@@ -286,6 +331,7 @@ func (g *Window) parseSequences(str string, printExtra bool) int {
 				lastFound = i
 				for i := range sgr {
 					g.handleSGR(sgr[i])
+					g.InvalidateBuffer()
 				}
 			}
 		} else if csi, ok := extractCSI(string(runes[i:])); ok {
@@ -294,11 +340,13 @@ func (g *Window) parseSequences(str string, printExtra bool) int {
 			if csi, ok := parseCSI(csi); ok {
 				lastFound = i
 				g.handleCSI(csi)
+				g.InvalidateBuffer()
 			}
 		} else if printExtra {
 			g.PrintChar(runes[i], g.curFg, g.curBg, g.curWeight)
 		}
 	}
+
 	return lastFound
 }
 
@@ -356,6 +404,8 @@ func (g *Window) PrintChar(r rune, fg, bg color.Color, weight FontWeight) {
 
 	// Move the cursor.
 	g.cursorX++
+
+	g.InvalidateBuffer()
 }
 
 func (g *Window) Update() error {
@@ -438,6 +488,8 @@ func (g *Window) Update() error {
 	// Keyboard.
 	g.inputAdapter.HandleKeyPress()
 
+	g.onUpdate()
+
 	return nil
 }
 
@@ -447,39 +499,54 @@ func (g *Window) Draw(screen *ebiten.Image) {
 
 	screen.Fill(g.defaultBg)
 
-	bufferImage := ebiten.NewImage(g.cellsWidth*g.cellWidth, g.cellsHeight*g.cellHeight)
+	g.onPreDraw(screen)
 
-	// Draw background
-	bufferImage.WritePixels(g.bgColors.Pix)
+	// Get current buffer
+	bufferImage := g.lastBuffer
 
-	// Draw text
-	for y := 0; y < g.cellsHeight; y++ {
-		for x := 0; x < g.cellsWidth; x++ {
-			if g.grid[y][x].Char == ' ' {
-				continue
-			}
+	// Only draw the buffer if it's invalid
+	if bufferImage == nil || g.invalidateBuffer {
+		bufferImage = ebiten.NewImage(g.cellsWidth*g.cellWidth, g.cellsHeight*g.cellHeight)
 
-			switch g.grid[y][x].Weight {
-			case FontWeightNormal:
-				text.Draw(bufferImage, string(g.grid[y][x].Char), g.fonts.Normal, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
-			case FontWeightBold:
-				text.Draw(bufferImage, string(g.grid[y][x].Char), g.fonts.Bold, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
-			case FontWeightItalic:
-				text.Draw(bufferImage, string(g.grid[y][x].Char), g.fonts.Italic, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
+		// Draw background
+		bufferImage.WritePixels(g.bgColors.Pix)
+
+		// Draw text
+		for y := 0; y < g.cellsHeight; y++ {
+			for x := 0; x < g.cellsWidth; x++ {
+				if g.grid[y][x].Char == ' ' {
+					continue
+				}
+
+				switch g.grid[y][x].Weight {
+				case FontWeightNormal:
+					text.Draw(bufferImage, string(g.grid[y][x].Char), g.fonts.Normal, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
+				case FontWeightBold:
+					text.Draw(bufferImage, string(g.grid[y][x].Char), g.fonts.Bold, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
+				case FontWeightItalic:
+					text.Draw(bufferImage, string(g.grid[y][x].Char), g.fonts.Italic, x*g.cellWidth, y*g.cellHeight+g.cellOffsetY, g.grid[y][x].Fg)
+				}
 			}
 		}
+
+		// Draw cursor
+		if g.showCursor {
+			text.Draw(bufferImage, g.cursorChar, g.fonts.Normal, g.cursorX*g.cellWidth, g.cursorY*g.cellHeight+g.cellOffsetY, g.cursorColor)
+		}
+
+		g.lastBuffer = bufferImage
+		g.invalidateBuffer = false
 	}
 
-	if g.showCursor {
-		text.Draw(bufferImage, g.cursorChar, g.fonts.Normal, g.cursorX*g.cellWidth, g.cursorY*g.cellHeight+g.cellOffsetY, g.cursorColor)
-	}
-
+	// Draw shader
 	if g.shader != nil {
+		shaderBuffer := ebiten.NewImageFromImage(bufferImage)
+
 		for i := range g.shader {
-			_ = g.shader[i].Apply(screen, bufferImage)
+			_ = g.shader[i].Apply(screen, shaderBuffer)
 
 			if len(g.shader) > 0 {
-				bufferImage.DrawImage(screen, nil)
+				shaderBuffer.DrawImage(screen, nil)
 			}
 		}
 	} else {
@@ -489,6 +556,8 @@ func (g *Window) Draw(screen *ebiten.Image) {
 	if g.showTps {
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.CurrentTPS()))
 	}
+
+	g.onPostDraw(screen)
 }
 
 func (g *Window) Layout(outsideWidth, outsideHeight int) (int, int) {

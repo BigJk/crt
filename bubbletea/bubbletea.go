@@ -13,22 +13,6 @@ func init() {
 	lipgloss.SetColorProfile(termenv.TrueColor)
 }
 
-type fakeEnviron struct{}
-
-func (f fakeEnviron) Environ() []string {
-	return []string{"TERM", "COLORTERM"}
-}
-
-func (f fakeEnviron) Getenv(s string) string {
-	switch s {
-	case "TERM":
-		return "xterm-256color"
-	case "COLORTERM":
-		return "truecolor"
-	}
-	return ""
-}
-
 // Window creates a new crt based bubbletea window with the given width, height, fonts, model and default background color.
 // Additional options can be passed to the bubbletea program.
 func Window(width int, height int, fonts crt.Fonts, model tea.Model, defaultBg color.Color, options ...tea.ProgramOption) (*crt.Window, *tea.Program, error) {
@@ -43,7 +27,7 @@ func Window(width int, height int, fonts crt.Fonts, model tea.Model, defaultBg c
 		append([]tea.ProgramOption{
 			tea.WithMouseAllMotion(),
 			tea.WithInput(gameInput),
-			tea.WithOutput(termenv.NewOutput(gameOutput, termenv.WithEnvironment(fakeEnviron{}), termenv.WithTTY(true), termenv.WithProfile(termenv.TrueColor), termenv.WithColorCache(true))),
+			tea.WithOutput(gameOutput),
 			tea.WithANSICompressor(),
 		}, options...)...,
 	)
