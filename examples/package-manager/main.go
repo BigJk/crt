@@ -78,9 +78,9 @@ type model struct {
 }
 
 var (
-	currentPkgNameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#e7c6ff"))
+	currentPkgNameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("211"))
 	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
-	checkMark           = lipgloss.NewStyle().Foreground(lipgloss.Color("#8ac926")).SetString("✓")
+	checkMark           = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).SetString("✓")
 )
 
 func newModel() model {

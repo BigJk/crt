@@ -43,6 +43,14 @@ type SGRBgTrueColor struct {
 	R, G, B byte
 }
 
+type SGRFgColor struct {
+	Id int
+}
+
+type SGRBgColor struct {
+	Id int
+}
+
 // parseSGR parses a single SGR ansi sequence and returns a struct representing the sequence.
 func parseSGR(s string) ([]any, bool) {
 	if !strings.HasPrefix(s, termenv.CSI) {
@@ -83,7 +91,6 @@ func parseSGR(s string) ([]any, bool) {
 			case "23":
 				res = append(res, SGRUnsetItalic{})
 			default:
-				// TODO: Only true color is supported for now.
 				if strings.HasPrefix(s, "38;2;") {
 					var r, g, b byte
 					_, err := fmt.Sscanf(s, "38;2;%d;%d;%d", &r, &g, &b)
@@ -98,6 +105,22 @@ func parseSGR(s string) ([]any, bool) {
 					if err == nil {
 						skips = 4
 						res = append(res, SGRBgTrueColor{r, g, b})
+						continue
+					}
+				} else if strings.HasPrefix(s, "38;5;") {
+					var id int
+					_, err := fmt.Sscanf(s, "38;5;%d", &id)
+					if err == nil {
+						skips = 2
+						res = append(res, SGRFgColor{id})
+						continue
+					}
+				} else if strings.HasPrefix(s, "48;5;") {
+					var id int
+					_, err := fmt.Sscanf(s, "48;5;%d", &id)
+					if err == nil {
+						skips = 2
+						res = append(res, SGRBgColor{id})
 						continue
 					}
 				}

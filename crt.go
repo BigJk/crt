@@ -7,12 +7,17 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/lucasb-eyer/go-colorful"
 	"github.com/muesli/ansi"
+	"github.com/muesli/termenv"
 	"image"
 	"image/color"
 	"io"
 	"sync"
 )
+
+// colorCache is the ansi color cache.
+var colorCache = map[int]color.Color{}
 
 type Window struct {
 	sync.Mutex
@@ -313,9 +318,18 @@ func (g *Window) handleSGR(sgr any) {
 	case SGRUnsetItalic:
 		g.curWeight = FontWeightNormal
 	case SGRFgTrueColor:
-		g.curFg = color.RGBA{seq.R, seq.G, seq.B, 255}
+		g.curFg = color.RGBA{R: seq.R, G: seq.G, B: seq.B, A: 255}
 	case SGRBgTrueColor:
-		g.curBg = color.RGBA{seq.R, seq.G, seq.B, 255}
+		g.curBg = color.RGBA{R: seq.R, G: seq.G, B: seq.B, A: 255}
+	case SGRFgColor:
+		if val, ok := colorCache[seq.Id]; ok {
+			g.curFg = val
+		} else {
+			if col, err := colorful.Hex(termenv.ANSI256Color(seq.Id).String()); err == nil {
+				g.curFg = col
+				colorCache[seq.Id] = col
+			}
+		}
 	}
 }
 
