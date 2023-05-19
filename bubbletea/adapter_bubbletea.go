@@ -187,15 +187,18 @@ func (b *Adapter) HandleKeyPress() {
 		}
 
 		if val, ok := ebitenToTeaKeys[k]; ok {
+			runes := make([]rune, len(val.rune))
+			copy(runes, val.rune)
+
 			if ebiten.IsKeyPressed(ebiten.KeyShift) {
-				for i := range val.rune {
-					val.rune[i] = unicode.ToUpper(val.rune[i])
+				for i := range runes {
+					runes[i] = unicode.ToUpper(runes[i])
 				}
 			}
 
 			b.prog.Send(tea.KeyMsg{
 				Type:  val.key,
-				Runes: val.rune,
+				Runes: runes,
 				Alt:   ebiten.IsKeyPressed(ebiten.KeyAlt),
 			})
 		}
