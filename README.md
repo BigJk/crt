@@ -50,7 +50,7 @@ func main() {
 
 ## Limitations
 
-- Only supports TrueColor at the moment (no 256 color support) so you need to use TrueColor colors in lipgloss (e.g. ``lipgloss.Color("#ff0000")``)
+- ~~Only supports TrueColor at the moment (no 256 color support) so you need to use TrueColor colors in lipgloss (e.g. ``lipgloss.Color("#ff0000")``)~~ **Now supported.**
 - Not all CSI escape sequences are implemented but the ones that are used by bubbletea are implemented
 - A lot of testing still needs to be done and there are probably edge cases that are not handled correctly yet
 
