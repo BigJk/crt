@@ -17,6 +17,10 @@ func extractSGR(s string) (string, bool) {
 	}
 
 	for i := 2; i < len(s); i++ {
+		if s[i] == ' ' || s[i] == termenv.CSI[0] {
+			return "", false
+		}
+
 		if s[i] == 'm' {
 			return s[:i+1], true
 		}
