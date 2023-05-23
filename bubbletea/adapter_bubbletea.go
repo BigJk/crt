@@ -16,7 +16,6 @@ type teaKey struct {
 var ebitenToTeaKeys = map[ebiten.Key]teaKey{
 	ebiten.KeyEnter:      {tea.KeyEnter, []rune{'\n'}},
 	ebiten.KeyTab:        {tea.KeyTab, []rune{'\t'}},
-	ebiten.KeySpace:      {tea.KeySpace, []rune{' '}},
 	ebiten.KeyBackspace:  {tea.KeyBackspace, []rune{}},
 	ebiten.KeyDelete:     {tea.KeyDelete, []rune{}},
 	ebiten.KeyHome:       {tea.KeyHome, []rune{}},
@@ -138,11 +137,20 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 func (b *Adapter) HandleKeyPress() {
 	newInputs := ebiten.AppendInputChars([]rune{})
 	for _, v := range newInputs {
-		b.prog.Send(tea.KeyMsg{
-			Type:  tea.KeyRunes,
-			Runes: []rune{v},
-			Alt:   ebiten.IsKeyPressed(ebiten.KeyAlt),
-		})
+		switch v {
+		case ' ':
+			b.prog.Send(tea.KeyMsg{
+				Type:  tea.KeySpace,
+				Runes: []rune{v},
+				Alt:   ebiten.IsKeyPressed(ebiten.KeyAlt),
+			})
+		default:
+			b.prog.Send(tea.KeyMsg{
+				Type:  tea.KeyRunes,
+				Runes: []rune{v},
+				Alt:   ebiten.IsKeyPressed(ebiten.KeyAlt),
+			})
+		}
 	}
 
 	var keys []ebiten.Key
