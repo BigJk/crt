@@ -14,79 +14,32 @@ type teaKey struct {
 }
 
 var ebitenToTeaKeys = map[ebiten.Key]teaKey{
-	ebiten.KeyEnter:        {tea.KeyEnter, []rune{'\n'}},
-	ebiten.KeyTab:          {tea.KeyTab, []rune{'\t'}},
-	ebiten.KeySpace:        {tea.KeySpace, []rune{' '}},
-	ebiten.KeyBackspace:    {tea.KeyBackspace, []rune{}},
-	ebiten.KeyDelete:       {tea.KeyDelete, []rune{}},
-	ebiten.KeyHome:         {tea.KeyHome, []rune{}},
-	ebiten.KeyEnd:          {tea.KeyEnd, []rune{}},
-	ebiten.KeyPageUp:       {tea.KeyPgUp, []rune{}},
-	ebiten.KeyArrowUp:      {tea.KeyUp, []rune{}},
-	ebiten.KeyArrowDown:    {tea.KeyDown, []rune{}},
-	ebiten.KeyArrowLeft:    {tea.KeyLeft, []rune{}},
-	ebiten.KeyArrowRight:   {tea.KeyRight, []rune{}},
-	ebiten.KeyEscape:       {tea.KeyEscape, []rune{}},
-	ebiten.Key1:            {tea.KeyRunes, []rune{'1'}},
-	ebiten.Key2:            {tea.KeyRunes, []rune{'2'}},
-	ebiten.Key3:            {tea.KeyRunes, []rune{'3'}},
-	ebiten.Key4:            {tea.KeyRunes, []rune{'4'}},
-	ebiten.Key5:            {tea.KeyRunes, []rune{'5'}},
-	ebiten.Key6:            {tea.KeyRunes, []rune{'6'}},
-	ebiten.Key7:            {tea.KeyRunes, []rune{'7'}},
-	ebiten.Key8:            {tea.KeyRunes, []rune{'8'}},
-	ebiten.Key9:            {tea.KeyRunes, []rune{'9'}},
-	ebiten.Key0:            {tea.KeyRunes, []rune{'0'}},
-	ebiten.KeyA:            {tea.KeyRunes, []rune{'a'}},
-	ebiten.KeyB:            {tea.KeyRunes, []rune{'b'}},
-	ebiten.KeyC:            {tea.KeyRunes, []rune{'c'}},
-	ebiten.KeyD:            {tea.KeyRunes, []rune{'d'}},
-	ebiten.KeyE:            {tea.KeyRunes, []rune{'e'}},
-	ebiten.KeyF:            {tea.KeyRunes, []rune{'f'}},
-	ebiten.KeyG:            {tea.KeyRunes, []rune{'g'}},
-	ebiten.KeyH:            {tea.KeyRunes, []rune{'h'}},
-	ebiten.KeyI:            {tea.KeyRunes, []rune{'i'}},
-	ebiten.KeyJ:            {tea.KeyRunes, []rune{'j'}},
-	ebiten.KeyK:            {tea.KeyRunes, []rune{'k'}},
-	ebiten.KeyL:            {tea.KeyRunes, []rune{'l'}},
-	ebiten.KeyM:            {tea.KeyRunes, []rune{'m'}},
-	ebiten.KeyN:            {tea.KeyRunes, []rune{'n'}},
-	ebiten.KeyO:            {tea.KeyRunes, []rune{'o'}},
-	ebiten.KeyP:            {tea.KeyRunes, []rune{'p'}},
-	ebiten.KeyQ:            {tea.KeyRunes, []rune{'q'}},
-	ebiten.KeyR:            {tea.KeyRunes, []rune{'r'}},
-	ebiten.KeyS:            {tea.KeyRunes, []rune{'s'}},
-	ebiten.KeyT:            {tea.KeyRunes, []rune{'t'}},
-	ebiten.KeyU:            {tea.KeyRunes, []rune{'u'}},
-	ebiten.KeyV:            {tea.KeyRunes, []rune{'v'}},
-	ebiten.KeyW:            {tea.KeyRunes, []rune{'w'}},
-	ebiten.KeyX:            {tea.KeyRunes, []rune{'x'}},
-	ebiten.KeyY:            {tea.KeyRunes, []rune{'y'}},
-	ebiten.KeyZ:            {tea.KeyRunes, []rune{'z'}},
-	ebiten.KeyComma:        {tea.KeyRunes, []rune{','}},
-	ebiten.KeyPeriod:       {tea.KeyRunes, []rune{'.'}},
-	ebiten.KeySlash:        {tea.KeyRunes, []rune{'/'}},
-	ebiten.KeyBackslash:    {tea.KeyRunes, []rune{'\\'}},
-	ebiten.KeySemicolon:    {tea.KeyRunes, []rune{';'}},
-	ebiten.KeyApostrophe:   {tea.KeyRunes, []rune{'\''}},
-	ebiten.KeyGraveAccent:  {tea.KeyRunes, []rune{'`'}},
-	ebiten.KeyEqual:        {tea.KeyRunes, []rune{'='}},
-	ebiten.KeyMinus:        {tea.KeyRunes, []rune{'-'}},
-	ebiten.KeyLeftBracket:  {tea.KeyRunes, []rune{'['}},
-	ebiten.KeyRightBracket: {tea.KeyRunes, []rune{']'}},
-	ebiten.KeyF1:           {tea.KeyF1, []rune{}},
-	ebiten.KeyF2:           {tea.KeyF2, []rune{}},
-	ebiten.KeyF3:           {tea.KeyF3, []rune{}},
-	ebiten.KeyF4:           {tea.KeyF4, []rune{}},
-	ebiten.KeyF5:           {tea.KeyF5, []rune{}},
-	ebiten.KeyF6:           {tea.KeyF6, []rune{}},
-	ebiten.KeyF7:           {tea.KeyF7, []rune{}},
-	ebiten.KeyF8:           {tea.KeyF8, []rune{}},
-	ebiten.KeyF9:           {tea.KeyF9, []rune{}},
-	ebiten.KeyF10:          {tea.KeyF10, []rune{}},
-	ebiten.KeyF11:          {tea.KeyF11, []rune{}},
-	ebiten.KeyF12:          {tea.KeyF12, []rune{}},
-	ebiten.KeyShift:        {tea.KeyShiftLeft, []rune{}},
+	ebiten.KeyEnter:      {tea.KeyEnter, []rune{'\n'}},
+	ebiten.KeyTab:        {tea.KeyTab, []rune{'\t'}},
+	ebiten.KeySpace:      {tea.KeySpace, []rune{' '}},
+	ebiten.KeyBackspace:  {tea.KeyBackspace, []rune{}},
+	ebiten.KeyDelete:     {tea.KeyDelete, []rune{}},
+	ebiten.KeyHome:       {tea.KeyHome, []rune{}},
+	ebiten.KeyEnd:        {tea.KeyEnd, []rune{}},
+	ebiten.KeyPageUp:     {tea.KeyPgUp, []rune{}},
+	ebiten.KeyArrowUp:    {tea.KeyUp, []rune{}},
+	ebiten.KeyArrowDown:  {tea.KeyDown, []rune{}},
+	ebiten.KeyArrowLeft:  {tea.KeyLeft, []rune{}},
+	ebiten.KeyArrowRight: {tea.KeyRight, []rune{}},
+	ebiten.KeyEscape:     {tea.KeyEscape, []rune{}},
+	ebiten.KeyF1:         {tea.KeyF1, []rune{}},
+	ebiten.KeyF2:         {tea.KeyF2, []rune{}},
+	ebiten.KeyF3:         {tea.KeyF3, []rune{}},
+	ebiten.KeyF4:         {tea.KeyF4, []rune{}},
+	ebiten.KeyF5:         {tea.KeyF5, []rune{}},
+	ebiten.KeyF6:         {tea.KeyF6, []rune{}},
+	ebiten.KeyF7:         {tea.KeyF7, []rune{}},
+	ebiten.KeyF8:         {tea.KeyF8, []rune{}},
+	ebiten.KeyF9:         {tea.KeyF9, []rune{}},
+	ebiten.KeyF10:        {tea.KeyF10, []rune{}},
+	ebiten.KeyF11:        {tea.KeyF11, []rune{}},
+	ebiten.KeyF12:        {tea.KeyF12, []rune{}},
+	ebiten.KeyShift:      {tea.KeyShiftLeft, []rune{}},
 }
 
 var ebitenToTeaMouse = map[ebiten.MouseButton]tea.MouseEventType{
@@ -167,12 +120,44 @@ func (b *Adapter) HandleMouseWheel(wheel crt.MouseWheel) {
 	}
 }
 
+func repeatingKeyPressed(key ebiten.Key) bool {
+	const (
+		delay    = 30
+		interval = 3
+	)
+	d := inpututil.KeyPressDuration(key)
+	if d == 1 {
+		return true
+	}
+	if d >= delay && (d-delay)%interval == 0 {
+		return true
+	}
+	return false
+}
+
 func (b *Adapter) HandleKeyPress() {
+	newInputs := ebiten.AppendInputChars([]rune{})
+	for _, v := range newInputs {
+		b.prog.Send(tea.KeyMsg{
+			Type:  tea.KeyRunes,
+			Runes: []rune{v},
+			Alt:   ebiten.IsKeyPressed(ebiten.KeyAlt),
+		})
+	}
+
 	var keys []ebiten.Key
-	keys = inpututil.AppendJustReleasedKeys(keys)
+	keys = inpututil.AppendJustPressedKeys(keys)
+	repeatedBackspace := repeatingKeyPressed(ebiten.KeyBackspace)
+
+	if repeatedBackspace {
+		b.prog.Send(tea.KeyMsg{
+			Type:  tea.KeyBackspace,
+			Runes: []rune{},
+			Alt:   false,
+		})
+	}
 
 	for _, k := range keys {
-
 		switch k {
 		case ebiten.KeyC:
 			if ebiten.IsKeyPressed(ebiten.KeyControl) {
@@ -184,6 +169,10 @@ func (b *Adapter) HandleKeyPress() {
 
 				continue
 			}
+		}
+
+		if repeatedBackspace && k == ebiten.KeyBackspace {
+			continue
 		}
 
 		if val, ok := ebitenToTeaKeys[k]; ok {
