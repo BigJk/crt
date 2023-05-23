@@ -15,7 +15,7 @@ type teaKey struct {
 
 var ebitenToTeaKeys = map[ebiten.Key]teaKey{
 	ebiten.KeyEnter:      {tea.KeyEnter, []rune{'\n'}},
-	ebiten.KeyTab:        {tea.KeyTab, []rune{'\t'}},
+	ebiten.KeyTab:        {tea.KeyTab, []rune{}},
 	ebiten.KeyBackspace:  {tea.KeyBackspace, []rune{}},
 	ebiten.KeyDelete:     {tea.KeyDelete, []rune{}},
 	ebiten.KeyHome:       {tea.KeyHome, []rune{}},
@@ -39,6 +39,39 @@ var ebitenToTeaKeys = map[ebiten.Key]teaKey{
 	ebiten.KeyF11:        {tea.KeyF11, []rune{}},
 	ebiten.KeyF12:        {tea.KeyF12, []rune{}},
 	ebiten.KeyShift:      {tea.KeyShiftLeft, []rune{}},
+}
+
+var ebitenToCtrlKeys = map[ebiten.Key]tea.KeyType{
+	ebiten.KeyA:            tea.KeyCtrlA,
+	ebiten.KeyB:            tea.KeyCtrlB,
+	ebiten.KeyC:            tea.KeyCtrlC,
+	ebiten.KeyD:            tea.KeyCtrlD,
+	ebiten.KeyE:            tea.KeyCtrlE,
+	ebiten.KeyF:            tea.KeyCtrlF,
+	ebiten.KeyG:            tea.KeyCtrlG,
+	ebiten.KeyH:            tea.KeyCtrlH,
+	ebiten.KeyI:            tea.KeyCtrlI,
+	ebiten.KeyJ:            tea.KeyCtrlJ,
+	ebiten.KeyK:            tea.KeyCtrlK,
+	ebiten.KeyL:            tea.KeyCtrlL,
+	ebiten.KeyM:            tea.KeyCtrlM,
+	ebiten.KeyN:            tea.KeyCtrlN,
+	ebiten.KeyO:            tea.KeyCtrlO,
+	ebiten.KeyP:            tea.KeyCtrlP,
+	ebiten.KeyQ:            tea.KeyCtrlQ,
+	ebiten.KeyR:            tea.KeyCtrlR,
+	ebiten.KeyS:            tea.KeyCtrlS,
+	ebiten.KeyT:            tea.KeyCtrlT,
+	ebiten.KeyU:            tea.KeyCtrlU,
+	ebiten.KeyV:            tea.KeyCtrlV,
+	ebiten.KeyW:            tea.KeyCtrlW,
+	ebiten.KeyX:            tea.KeyCtrlX,
+	ebiten.KeyY:            tea.KeyCtrlY,
+	ebiten.KeyZ:            tea.KeyCtrlZ,
+	ebiten.KeyLeftBracket:  tea.KeyCtrlOpenBracket,
+	ebiten.KeyBackslash:    tea.KeyCtrlBackslash,
+	ebiten.KeyRightBracket: tea.KeyCtrlCloseBracket,
+	ebiten.KeyApostrophe:   tea.KeyCtrlCaret,
 }
 
 var ebitenToTeaMouse = map[ebiten.MouseButton]tea.MouseEventType{
@@ -166,15 +199,13 @@ func (b *Adapter) HandleKeyPress() {
 	}
 
 	for _, k := range keys {
-		switch k {
-		case ebiten.KeyC:
-			if ebiten.IsKeyPressed(ebiten.KeyControl) {
+		if ebiten.IsKeyPressed(ebiten.KeyControl) {
+			if tk, ok := ebitenToCtrlKeys[k]; ok {
 				b.prog.Send(tea.KeyMsg{
-					Type:  tea.KeyCtrlC,
+					Type:  tk,
 					Runes: []rune{},
 					Alt:   false,
 				})
-
 				continue
 			}
 		}
