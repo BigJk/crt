@@ -14,6 +14,7 @@ import (
 	"image/color"
 	"io"
 	"sync"
+	"unicode/utf8"
 )
 
 // colorCache is the ansi color cache.
@@ -53,6 +54,7 @@ type Window struct {
 	onPostDraw func(screen *ebiten.Image)
 
 	// Other
+	seqBuffer        []byte
 	showTps          bool
 	fonts            Fonts
 	bgColors         *image.RGBA
@@ -109,6 +111,7 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 		onPreDraw:        func(screen *ebiten.Image) {},
 		onPostDraw:       func(screen *ebiten.Image) {},
 		invalidateBuffer: true,
+		seqBuffer:        make([]byte, 0, 2^12),
 	}
 
 	game.inputAdapter.HandleWindowSize(WindowSize{
@@ -185,6 +188,18 @@ func (g *Window) SetBgPixels(x, y int, c color.Color) {
 		}
 	}
 	g.InvalidateBuffer()
+}
+
+// SetBg sets the background color of a cell and checks if it needs to be redrawn.
+func (g *Window) SetBg(x, y int, c color.Color) {
+	ra, rg, rb, _ := g.grid[y][x].Bg.RGBA()
+	ca, cg, cb, _ := c.RGBA()
+	if ra == ca && rg == cg && rb == cb {
+		return
+	}
+
+	g.SetBgPixels(x, y, c)
+	g.grid[y][x].Bg = c
 }
 
 // GetCellsWidth returns the number of cells in the x direction.
@@ -266,22 +281,19 @@ func (g *Window) handleCSI(csi any) {
 			for i := g.cursorX; i < g.cellsWidth-g.cursorX; i++ {
 				g.grid[g.cursorY][g.cursorX+i].Char = ' '
 				g.grid[g.cursorY][g.cursorX+i].Fg = color.White
-				g.grid[g.cursorY][g.cursorX+i].Bg = g.defaultBg
-				g.SetBgPixels(g.cursorX+i, g.cursorY, g.defaultBg)
+				g.SetBg(g.cursorX+i, g.cursorY, g.defaultBg)
 			}
 		case 1: // erase from start of line to cursor
 			for i := 0; i < g.cursorX; i++ {
 				g.grid[g.cursorY][i].Char = ' '
 				g.grid[g.cursorY][i].Fg = color.White
-				g.grid[g.cursorY][i].Bg = g.defaultBg
-				g.SetBgPixels(i, g.cursorY, g.defaultBg)
+				g.SetBg(i, g.cursorY, g.defaultBg)
 			}
 		case 2: // erase entire line
 			for i := 0; i < g.cellsWidth; i++ {
 				g.grid[g.cursorY][i].Char = ' '
 				g.grid[g.cursorY][i].Fg = color.White
-				g.grid[g.cursorY][i].Bg = g.defaultBg
-				g.SetBgPixels(i, g.cursorY, g.defaultBg)
+				g.SetBg(i, g.cursorY, g.defaultBg)
 			}
 		}
 	case CursorShowSeq:
@@ -334,11 +346,9 @@ func (g *Window) handleSGR(sgr any) {
 }
 
 func (g *Window) parseSequences(str string, printExtra bool) int {
-	runes := []rune(str)
-
 	lastFound := 0
-	for i := 0; i < len(runes); i++ {
-		if sgr, ok := extractSGR(string(runes[i:])); ok {
+	for i := 0; i < len(str); i++ {
+		if sgr, ok := extractSGR(str[i:]); ok {
 			i += len(sgr) - 1
 
 			if sgr, ok := parseSGR(sgr); ok {
@@ -348,7 +358,7 @@ func (g *Window) parseSequences(str string, printExtra bool) int {
 					g.InvalidateBuffer()
 				}
 			}
-		} else if csi, ok := extractCSI(string(runes[i:])); ok {
+		} else if csi, ok := extractCSI(str[i:]); ok {
 			i += len(csi) - 1
 
 			if csi, ok := parseCSI(csi); ok {
@@ -357,11 +367,21 @@ func (g *Window) parseSequences(str string, printExtra bool) int {
 				g.InvalidateBuffer()
 			}
 		} else if printExtra {
-			g.PrintChar(runes[i], g.curFg, g.curBg, g.curWeight)
+			if r, size := utf8.DecodeRuneInString(str[i:]); r != utf8.RuneError {
+				g.PrintChar(r, g.curFg, g.curBg, g.curWeight)
+				i += size - 1
+			}
 		}
 	}
 
 	return lastFound
+}
+
+func (g *Window) drainSequence() {
+	if len(g.seqBuffer) > 0 {
+		g.parseSequences(string(g.seqBuffer), true)
+		g.seqBuffer = g.seqBuffer[:0]
+	}
 }
 
 // RecalculateBackgrounds syncs the background colors to the background pixels.
@@ -439,8 +459,7 @@ func (g *Window) Update() error {
 
 				g.Lock()
 				{
-					line := string(buf[:n])
-					g.parseSequences(line, true)
+					g.seqBuffer = append(g.seqBuffer, buf[:n]...)
 				}
 				g.Unlock()
 			}
@@ -511,9 +530,12 @@ func (g *Window) Draw(screen *ebiten.Image) {
 	g.Lock()
 	defer g.Unlock()
 
-	screen.Fill(g.defaultBg)
-
 	g.onPreDraw(screen)
+
+	// We process the sequence buffer here so that we don't get flickering
+	g.drainSequence()
+
+	screen.Fill(g.defaultBg)
 
 	// Get current buffer
 	bufferImage := g.lastBuffer

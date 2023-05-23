@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"github.com/muesli/termenv"
 	"strings"
+	"sync"
 )
+
+var sgrMtx = &sync.Mutex{}
+var sgrCache = map[string][]any{}
 
 // extractSGR extracts an SGR ansi sequence from the beginning of the string.
 func extractSGR(s string) (string, bool) {
@@ -65,6 +69,15 @@ func parseSGR(s string) ([]any, bool) {
 	if len(s) == 0 {
 		return nil, false
 	}
+
+	sgrMtx.Lock()
+	if cached, ok := sgrCache[s]; ok {
+		sgrMtx.Unlock()
+		return cached, true
+	}
+	sgrMtx.Unlock()
+
+	full := s
 
 	if !strings.HasSuffix(s, "m") {
 		return nil, false
@@ -137,6 +150,10 @@ func parseSGR(s string) ([]any, bool) {
 
 		s = s[len(code)+1:]
 	}
+
+	sgrMtx.Lock()
+	sgrCache[full] = res
+	sgrMtx.Unlock()
 
 	return res, len(res) > 0
 }

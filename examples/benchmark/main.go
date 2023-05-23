@@ -11,6 +11,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
 	"math/rand"
+	"net/http"
+	_ "net/http/pprof"
 	"time"
 )
 
@@ -36,10 +38,16 @@ func (m *model) View() string {
 }
 
 func main() {
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
+	rand.Seed(0)
+
 	enableShader := flag.Bool("shader", false, "Enable shader")
 	flag.Parse()
 
-	fonts, err := crt.LoadFaces("./fonts/IosevkaTermNerdFontMono-Regular.ttf", "./fonts/IosevkaTermNerdFontMono-Bold.ttf", "./fonts/IosevkaTermNerdFontMono-Italic.ttf", 72.0, 8.0)
+	fonts, err := crt.LoadFaces("./fonts/IosevkaTermNerdFontMono-Regular.ttf", "./fonts/IosevkaTermNerdFontMono-Bold.ttf", "./fonts/IosevkaTermNerdFontMono-Italic.ttf", 72.0, 9.0)
 	if err != nil {
 		panic(err)
 	}
@@ -60,13 +68,15 @@ func main() {
 	}()
 
 	var lastStart int64
-
 	win.SetOnPreDraw(func(screen *ebiten.Image) {
 		lastStart = time.Now().UnixMicro()
 	})
-
 	win.SetOnPostDraw(func(screen *ebiten.Image) {
 		elapsed := time.Now().UnixMicro() - lastStart
+		if (1000 / (float64(elapsed) * 0.001)) > 500 {
+			return
+		}
+
 		fmt.Printf("Frame took %d micro seconds FPS=%.2f\n", elapsed, 1000/(float64(elapsed)*0.001))
 	})
 
@@ -78,6 +88,8 @@ func main() {
 
 		win.SetShader(lotte)
 	}
+
+	win.ShowTPS(true)
 
 	if err := win.Run("Simple"); err != nil {
 		panic(err)

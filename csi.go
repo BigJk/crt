@@ -4,7 +4,11 @@ import (
 	"github.com/muesli/termenv"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+var csiMtx = &sync.Mutex{}
+var csiCache = map[string]any{}
 
 type CursorUpSeq struct {
 	Count int
@@ -109,6 +113,25 @@ func parseCSI(s string) (any, bool) {
 		return nil, false
 	}
 
+	csiMtx.Lock()
+	if cached, ok := csiCache[s]; ok {
+		csiMtx.Unlock()
+		return cached, true
+	}
+	csiMtx.Unlock()
+
+	if val, ok := parseCSIStruct(s); ok {
+		csiMtx.Lock()
+		csiCache[s] = val
+		csiMtx.Unlock()
+
+		return val, true
+	}
+
+	return nil, false
+}
+
+func parseCSIStruct(s string) (any, bool) {
 	switch s {
 	case termenv.ShowCursorSeq:
 		return CursorShowSeq{}, true
