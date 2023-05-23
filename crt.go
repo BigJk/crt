@@ -342,6 +342,15 @@ func (g *Window) handleSGR(sgr any) {
 				colorCache[seq.Id] = col
 			}
 		}
+	case SGRBgColor:
+		if val, ok := colorCache[seq.Id]; ok {
+			g.curBg = val
+		} else {
+			if col, err := colorful.Hex(termenv.ANSI256Color(seq.Id).String()); err == nil {
+				g.curBg = col
+				colorCache[seq.Id] = col
+			}
+		}
 	}
 }
 
