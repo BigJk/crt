@@ -13,6 +13,21 @@ type teaKey struct {
 	rune []rune
 }
 
+func repeatingKeyPressed(key ebiten.Key) bool {
+	const (
+		delay    = 30
+		interval = 3
+	)
+	d := inpututil.KeyPressDuration(key)
+	if d == 1 {
+		return true
+	}
+	if d >= delay && (d-delay)%interval == 0 {
+		return true
+	}
+	return false
+}
+
 var ebitenToTeaKeys = map[ebiten.Key]teaKey{
 	ebiten.KeyEnter:      {tea.KeyEnter, []rune{'\n'}},
 	ebiten.KeyTab:        {tea.KeyTab, []rune{}},
@@ -150,21 +165,6 @@ func (b *Adapter) HandleMouseWheel(wheel crt.MouseWheel) {
 			Type: tea.MouseWheelDown,
 		})
 	}
-}
-
-func repeatingKeyPressed(key ebiten.Key) bool {
-	const (
-		delay    = 30
-		interval = 3
-	)
-	d := inpututil.KeyPressDuration(key)
-	if d == 1 {
-		return true
-	}
-	if d >= delay && (d-delay)%interval == 0 {
-		return true
-	}
-	return false
 }
 
 func (b *Adapter) HandleKeyPress() {
