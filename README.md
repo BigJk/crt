@@ -30,7 +30,7 @@ import (
 
 func main() {
 	// Load fonts for normal, bold and italic text styles.
-	fonts, err := crt.LoadFaces("./fonts/SomeFont-Regular.ttf", "./fonts/SomeFont-Bold.ttf", "./fonts/SomeFont-Italic.ttf", 72.0, 16.0)
+	fonts, err := crt.LoadFaces("./fonts/SomeFont-Regular.ttf", "./fonts/SomeFont-Bold.ttf", "./fonts/SomeFont-Italic.ttf", crt.GetFontDPI(), 16.0)
 	if err != nil {
 		panic(err)
 	}

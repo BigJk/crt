@@ -47,7 +47,7 @@ func main() {
 	enableShader := flag.Bool("shader", false, "Enable shader")
 	flag.Parse()
 
-	fonts, err := crt.LoadFaces("./fonts/IosevkaTermNerdFontMono-Regular.ttf", "./fonts/IosevkaTermNerdFontMono-Bold.ttf", "./fonts/IosevkaTermNerdFontMono-Italic.ttf", 72.0, 9.0)
+	fonts, err := crt.LoadFaces("./fonts/IosevkaTermNerdFontMono-Regular.ttf", "./fonts/IosevkaTermNerdFontMono-Bold.ttf", "./fonts/IosevkaTermNerdFontMono-Italic.ttf", crt.GetFontDPI(), 9.0)
 	if err != nil {
 		panic(err)
 	}

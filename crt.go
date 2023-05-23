@@ -73,12 +73,12 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 	bounds, _, _ := fonts.Normal.GlyphBounds([]rune("█")[0])
 	size := bounds.Max.Sub(bounds.Min)
 
-	cellWidth := size.X.Round()
-	cellHeight := size.Y.Round()
-	cellOffsetY := -bounds.Min.Y.Round()
+	cellWidth := size.X.Ceil()
+	cellHeight := size.Y.Ceil()
+	cellOffsetY := -bounds.Min.Y.Ceil()
 
-	cellsWidth := width / cellWidth
-	cellsHeight := height / cellHeight
+	cellsWidth := int(float64(width)*DeviceScale()) / cellWidth
+	cellsHeight := int(float64(height)*DeviceScale()) / cellHeight
 
 	grid := make([][]GridCell, cellsHeight)
 	for y := 0; y < cellsHeight; y++ {
@@ -597,14 +597,13 @@ func (g *Window) Draw(screen *ebiten.Image) {
 }
 
 func (g *Window) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return g.cellsWidth * g.cellWidth, g.cellsHeight * g.cellHeight
+	s := DeviceScale()
+	return int(float64(outsideWidth) * s), int(float64(outsideHeight) * s)
 }
 
 func (g *Window) Run(title string) error {
-	sw, sh := g.Layout(0, 0)
-
 	ebiten.SetScreenFilterEnabled(false)
-	ebiten.SetWindowSize(sw, sh)
+	ebiten.SetWindowSize(int(float64(g.cellsWidth*g.cellWidth)/DeviceScale()), int(float64(g.cellsHeight*g.cellHeight)/DeviceScale()))
 	ebiten.SetWindowTitle(title)
 	if err := ebiten.RunGame(g); err != nil {
 		return err
