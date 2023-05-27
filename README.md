@@ -48,6 +48,8 @@ func main() {
 }
 ```
 
+See more examples in the ``/examples`` folder!
+
 ## Limitations
 
 - ~~Only supports TrueColor at the moment (no 256 color support) so you need to use TrueColor colors in lipgloss (e.g. ``lipgloss.Color("#ff0000")``)~~ **Now supported.**
