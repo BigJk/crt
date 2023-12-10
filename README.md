@@ -6,7 +6,7 @@
 
 CRT is a library to provide a simple terminal emulator that can be attached to a ``tea.Program``. It uses ``ebitengine`` to render a terminal. It supports TrueColor, Mouse and Keyboard input. It interprets the CSI escape sequences coming from bubbletea and renders them to the terminal.
 
-This started as a simple proof of concept for the game I'm writing with the help of bubbletea, called [End Of Eden](github.com/BigJk/end_of_eden). I wanted to give people who have no clue about the terminal a simple option to play the game without interacting with the terminal directly. It's also possible to apply shaders to the terminal to give it a more retro look which is a nice side effect.
+This started as a simple proof of concept for the game I'm writing with the help of bubbletea, called [End Of Eden](https://github.com/BigJk/end_of_eden). I wanted to give people who have no clue about the terminal a simple option to play the game without interacting with the terminal directly. It's also possible to apply shaders to the terminal to give it a more retro look which is a nice side effect.
 
 ## Usage
 
