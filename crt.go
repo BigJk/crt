@@ -60,6 +60,8 @@ type Window struct {
 	bgColors         *image.RGBA
 	shader           []shader.Shader
 	routine          sync.Once
+	shaderByteBuffer []byte
+	shaderBuffer     *ebiten.Image
 	lastBuffer       *ebiten.Image
 	invalidateBuffer bool
 }
@@ -105,6 +107,7 @@ func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAda
 		grid:             grid,
 		tty:              tty,
 		bgColors:         image.NewRGBA(image.Rect(0, 0, cellsWidth*cellWidth, cellsHeight*cellHeight)),
+		lastBuffer:       ebiten.NewImage(cellsWidth*cellWidth, cellsHeight*cellHeight),
 		cursorChar:       "█",
 		cursorColor:      color.RGBA{R: 255, G: 255, B: 255, A: 100},
 		onUpdate:         func() {},
@@ -550,9 +553,7 @@ func (g *Window) Draw(screen *ebiten.Image) {
 	bufferImage := g.lastBuffer
 
 	// Only draw the buffer if it's invalid
-	if bufferImage == nil || g.invalidateBuffer {
-		bufferImage = ebiten.NewImage(g.cellsWidth*g.cellWidth, g.cellsHeight*g.cellHeight)
-
+	if g.invalidateBuffer {
 		// Draw background
 		bufferImage.WritePixels(g.bgColors.Pix)
 
@@ -585,13 +586,22 @@ func (g *Window) Draw(screen *ebiten.Image) {
 
 	// Draw shader
 	if g.shader != nil {
-		shaderBuffer := ebiten.NewImageFromImage(bufferImage)
+		if g.shaderBuffer == nil {
+			g.shaderBuffer = ebiten.NewImageFromImage(bufferImage)
+		} else {
+			bounds := g.shaderBuffer.Bounds()
+			if len(g.shaderByteBuffer) < 4*bounds.Dx()*bounds.Dy() {
+				g.shaderByteBuffer = make([]byte, 4*bounds.Dx()*bounds.Dy())
+			}
+			bufferImage.ReadPixels(g.shaderByteBuffer)
+			g.shaderBuffer.WritePixels(g.shaderByteBuffer)
+		}
 
 		for i := range g.shader {
-			_ = g.shader[i].Apply(screen, shaderBuffer)
+			_ = g.shader[i].Apply(screen, g.shaderBuffer)
 
 			if len(g.shader) > 0 {
-				shaderBuffer.DrawImage(screen, nil)
+				g.shaderBuffer.DrawImage(screen, nil)
 			}
 		}
 	} else {
