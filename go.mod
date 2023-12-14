@@ -4,13 +4,13 @@ go 1.20
 
 require (
 	github.com/charmbracelet/bubbles v0.15.0
-	github.com/charmbracelet/bubbletea v0.24.0
+	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/glamour v0.6.0
 	github.com/charmbracelet/lipgloss v0.7.1
 	github.com/hajimehoshi/ebiten/v2 v2.6.3
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6
-	github.com/muesli/termenv v0.15.1
+	github.com/muesli/termenv v0.15.2
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/image v0.12.0
 )
