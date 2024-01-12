@@ -95,6 +95,16 @@ var ebitenToTeaMouse = map[ebiten.MouseButton]tea.MouseEventType{
 	ebiten.MouseButtonRight:  tea.MouseRight,
 }
 
+var ebitenToTeaMouseNew = map[ebiten.MouseButton]tea.MouseButton{
+	ebiten.MouseButtonLeft:   tea.MouseButtonLeft,
+	ebiten.MouseButtonMiddle: tea.MouseButtonMiddle,
+	ebiten.MouseButtonRight:  tea.MouseButtonRight,
+
+	// TODO: is this right?
+	ebiten.MouseButton3: tea.MouseButtonBackward,
+	ebiten.MouseButton4: tea.MouseButtonForward,
+}
+
 // Options are used to configure the adapter.
 type Options func(*Adapter)
 
@@ -124,11 +134,12 @@ func NewAdapter(prog *tea.Program, options ...Options) *Adapter {
 
 func (b *Adapter) HandleMouseMotion(motion crt.MouseMotion) {
 	b.prog.Send(tea.MouseMsg{
-		X:    motion.X,
-		Y:    motion.Y,
-		Alt:  false,
-		Ctrl: false,
-		Type: tea.MouseMotion,
+		X:      motion.X,
+		Y:      motion.Y,
+		Alt:    false,
+		Ctrl:   false,
+		Type:   tea.MouseMotion,
+		Action: tea.MouseActionMotion,
 	})
 }
 
@@ -138,13 +149,22 @@ func (b *Adapter) HandleMouseButton(button crt.MouseButton) {
 		return
 	}
 
-	b.prog.Send(tea.MouseMsg{
-		X:    button.X,
-		Y:    button.Y,
-		Alt:  ebiten.IsKeyPressed(ebiten.KeyAlt),
-		Ctrl: ebiten.IsKeyPressed(ebiten.KeyControl),
-		Type: ebitenToTeaMouse[button.Button],
-	})
+	msg := tea.MouseMsg{
+		X:      button.X,
+		Y:      button.Y,
+		Alt:    ebiten.IsKeyPressed(ebiten.KeyAlt),
+		Ctrl:   ebiten.IsKeyPressed(ebiten.KeyControl),
+		Type:   ebitenToTeaMouse[button.Button],
+		Button: ebitenToTeaMouseNew[button.Button],
+	}
+
+	if button.JustReleased {
+		msg.Action = tea.MouseActionRelease
+	} else if button.JustPressed {
+		msg.Action = tea.MouseActionPress
+	}
+
+	b.prog.Send(msg)
 }
 
 func (b *Adapter) HandleMouseWheel(wheel crt.MouseWheel) {
