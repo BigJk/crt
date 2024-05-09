@@ -66,6 +66,8 @@ type Window struct {
 	invalidateBuffer bool
 }
 
+type WindowOption func(window *Window)
+
 // NewGame creates a new terminal game with the given dimensions and font faces.
 func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAdapter, defaultBg color.Color) (*Window, error) {
 	if defaultBg == nil {
@@ -624,6 +626,20 @@ func (g *Window) Run(title string) error {
 	ebiten.SetScreenFilterEnabled(false)
 	ebiten.SetWindowSize(int(float64(g.cellsWidth*g.cellWidth)/DeviceScale()), int(float64(g.cellsHeight*g.cellHeight)/DeviceScale()))
 	ebiten.SetWindowTitle(title)
+	if err := ebiten.RunGame(g); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *Window) RunWithOptions(options ...WindowOption) error {
+	ebiten.SetWindowSize(int(float64(g.cellsWidth*g.cellWidth)/DeviceScale()), int(float64(g.cellsHeight*g.cellHeight)/DeviceScale()))
+
+	for _, opt := range options {
+		opt(g)
+	}
+
 	if err := ebiten.RunGame(g); err != nil {
 		return err
 	}
