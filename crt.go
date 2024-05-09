@@ -68,41 +68,6 @@ type Window struct {
 
 type WindowOption func(window *Window)
 
-// WithWindowTitle sets the window title.
-func WithWindowTitle(title string) WindowOption {
-	return func(window *Window) {
-		ebiten.SetWindowTitle(title)
-	}
-}
-
-// WithScreenFilter enables the screen filter.
-func WithScreenFilter() WindowOption {
-	return func(window *Window) {
-		ebiten.SetScreenFilterEnabled(true)
-	}
-}
-
-// WithoutScreenFilter disables the screen filter.
-func WithoutScreenFilter() WindowOption {
-	return func(window *Window) {
-		ebiten.SetScreenFilterEnabled(true)
-	}
-}
-
-// WithWindowDecoration enables window decorations.
-func WithWindowDecoration() WindowOption {
-	return func(window *Window) {
-		ebiten.SetWindowDecorated(true)
-	}
-}
-
-// WithoutWindowDecoration enables window decorations.
-func WithoutWindowDecoration() WindowOption {
-	return func(window *Window) {
-		ebiten.SetWindowDecorated(false)
-	}
-}
-
 // NewGame creates a new terminal game with the given dimensions and font faces.
 func NewGame(width int, height int, fonts Fonts, tty io.Reader, adapter InputAdapter, defaultBg color.Color) (*Window, error) {
 	if defaultBg == nil {
